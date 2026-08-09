@@ -27,7 +27,7 @@ app:
     refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
 
 server:
-  port: 8099
+  port: 8080
 
 management:
   endpoints:
