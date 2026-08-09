@@ -32,7 +32,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
     ports:
-      - "8080:8080"
+      - "8099:8099"
     networks:
       - fretcorridor-net
 
