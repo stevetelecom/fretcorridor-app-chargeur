@@ -36,7 +36,11 @@ class OffersScreen extends ConsumerWidget {
         if (accepted != null) {
           AppToast.success('Offre acceptée — transporteur confirmé');
           ref.invalidate(offersProvider(shipmentRequestId));
-          context.go('/home');
+          context.go('/shipment/$shipmentRequestId/payment', extra: {
+            'offerId': offer.id,
+            'carrierName': offer.carrierDisplayName,
+            'amountXaf': offer.priceXaf,
+          });
         }
       },
       error: (error, _) => AppToast.error('Impossible d\'accepter cette offre. Réessayez.'),
