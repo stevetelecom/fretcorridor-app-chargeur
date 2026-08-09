@@ -1,0 +1,27 @@
+# --- Backend (Java / Maven) ---
+backend/target/
+backend/.mvn/
+backend/*.class
+backend/.env
+
+# --- Mobile (Flutter/Dart) ---
+mobile/build/
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/ios/Pods/
+mobile/ios/.symlinks/
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# --- Secrets ---
+.env
+*.env
+!.env.example
