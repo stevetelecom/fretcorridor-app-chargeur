@@ -8,6 +8,7 @@ import 'features/auth/presentation/login_screen.dart';
 import 'features/auth/presentation/register_screen.dart';
 import 'features/auth/providers/session_provider.dart';
 import 'features/shipment_request/presentation/shipment_wizard_screen.dart';
+import 'features/offers/presentation/offers_screen.dart';
 import 'home_screen.dart';
 
 Future<void> main() async {
@@ -44,6 +45,10 @@ class FretCorridorApp extends ConsumerWidget {
         GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
         GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
         GoRoute(path: '/shipment/new', builder: (context, state) => const ShipmentWizardScreen()),
+        GoRoute(
+          path: '/shipment/:id/offers',
+          builder: (context, state) => OffersScreen(shipmentRequestId: state.pathParameters['id']!),
+        ),
       ],
     );
 
