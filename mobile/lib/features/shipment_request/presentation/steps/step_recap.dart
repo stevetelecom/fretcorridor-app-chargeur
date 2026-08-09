@@ -17,7 +17,7 @@ class StepRecap extends ConsumerWidget {
 
     return catalogAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(child: Text('Catalogue indisponible')),
+      error: (_, _) => const Center(child: Text('Catalogue indisponible')),
       data: (catalog) {
         final selectedItem = catalog.where((i) => i.id == draft.packageCatalogItemId).firstOrNull;
 
