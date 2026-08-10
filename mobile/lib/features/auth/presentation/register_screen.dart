@@ -41,7 +41,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    await ref.read(sessionProvider.notifier).register(
+    await ref
+        .read(sessionProvider.notifier)
+        .register(
           accountType: _accountType,
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
@@ -94,7 +96,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               boxShadow: const [
-                BoxShadow(color: Colors.black26, blurRadius: 24, offset: Offset(0, 8)),
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 24,
+                  offset: Offset(0, 8),
+                ),
               ],
             ),
             child: Form(
@@ -109,115 +115,144 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(height: 24),
                   Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.errorBackground,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.errorBorder),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.info_outline, color: AppColors.primary),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Text('Inscription rapide - vous pourrez completer votre profil plus tard.'),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(value: 'PARTICULIER', label: Text('Particulier')),
-                    ButtonSegment(value: 'ENTREPRISE', label: Text('Entreprise')),
-                  ],
-                  selected: {_accountType},
-                  onSelectionChanged: (selection) => setState(() => _accountType = selection.first),
-                ),
-                const SizedBox(height: 24),
-                // Champ specifique entreprise (CDC UC-IDA-02 etape 1) : seule
-                // vraie difference de flux entre les deux types de compte a
-                // ce stade d'inscription rapide.
-                if (_accountType == 'ENTREPRISE') ...[
-                  TextFormField(
-                    controller: _companyNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Raison sociale',
-                      prefixIcon: Icon(Icons.apartment_outlined),
-                    ),
-                    validator: (v) => (_accountType == 'ENTREPRISE' && (v == null || v.trim().length < 2))
-                        ? 'La raison sociale est requise'
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                TextFormField(
-                  controller: _firstNameController,
-                  decoration: InputDecoration(
-                    // Libelle contextuel : pour une entreprise, ce champ
-                    // designe le contact, pas l'entite elle-meme.
-                    labelText: _accountType == 'ENTREPRISE' ? 'Prenom du contact' : 'Prenom',
-                    prefixIcon: const Icon(Icons.person_outline),
-                  ),
-                  validator: (v) => (v == null || v.trim().length < 2) ? 'Le prenom est requis' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _lastNameController,
-                  decoration: InputDecoration(
-                    labelText: _accountType == 'ENTREPRISE' ? 'Nom du contact' : 'Nom',
-                    prefixIcon: const Icon(Icons.badge_outlined),
-                  ),
-                  validator: (v) => (v == null || v.trim().length < 2) ? 'Le nom est requis' : null,
-                ),
-                const SizedBox(height: 16),
-                IntlPhoneField(
-                  initialCountryCode: 'CM',
-                  decoration: const InputDecoration(labelText: 'Telephone'),
-                  dropdownIconPosition: IconPosition.trailing,
-                  onChanged: (phone) => _phoneNumber = phone.completeNumber,
-                  validator: (phone) {
-                    if (phone == null || phone.number.trim().isEmpty) {
-                      return 'Numero de telephone requis';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                PinField(controller: _pinController),
-                if (sessionState.hasError) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: AppColors.errorBackground,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.errorBorder),
                     ),
-                    child: Row(
+                    child: const Row(
                       children: [
-                        const Icon(Icons.error_outline, color: AppColors.primary),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(_readableError(sessionState.error!))),
+                        Icon(Icons.info_outline, color: AppColors.primary),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Inscription rapide - vous pourrez completer votre profil plus tard.',
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                ],
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: sessionState.isLoading ? null : _submit,
-                  child: sessionState.isLoading
-                      ? const SizedBox(
-                          height: 20, width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Creer mon compte'),
-                ),
-                const SizedBox(height: 12),
-                // Lien retour connexion - un utilisateur qui a deja un
-                // compte ne doit pas etre coince sur l'ecran d'inscription.
-                TextButton(
-                  onPressed: () => context.go('/login'),
-                  child: const Text('Deja un compte ? Se connecter'),
-                ),
+                  const SizedBox(height: 24),
+                  SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(
+                        value: 'PARTICULIER',
+                        label: Text('Particulier'),
+                      ),
+                      ButtonSegment(
+                        value: 'ENTREPRISE',
+                        label: Text('Entreprise'),
+                      ),
+                    ],
+                    selected: {_accountType},
+                    onSelectionChanged: (selection) =>
+                        setState(() => _accountType = selection.first),
+                  ),
+                  const SizedBox(height: 24),
+                  // Champ specifique entreprise (CDC UC-IDA-02 etape 1) : seule
+                  // vraie difference de flux entre les deux types de compte a
+                  // ce stade d'inscription rapide.
+                  if (_accountType == 'ENTREPRISE') ...[
+                    TextFormField(
+                      controller: _companyNameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Raison sociale',
+                        prefixIcon: Icon(Icons.apartment_outlined),
+                      ),
+                      validator: (v) =>
+                          (_accountType == 'ENTREPRISE' &&
+                              (v == null || v.trim().length < 2))
+                          ? 'La raison sociale est requise'
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  TextFormField(
+                    controller: _firstNameController,
+                    decoration: InputDecoration(
+                      // Libelle contextuel : pour une entreprise, ce champ
+                      // designe le contact, pas l'entite elle-meme.
+                      labelText: _accountType == 'ENTREPRISE'
+                          ? 'Prenom du contact'
+                          : 'Prenom',
+                      prefixIcon: const Icon(Icons.person_outline),
+                    ),
+                    validator: (v) => (v == null || v.trim().length < 2)
+                        ? 'Le prenom est requis'
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _lastNameController,
+                    decoration: InputDecoration(
+                      labelText: _accountType == 'ENTREPRISE'
+                          ? 'Nom du contact'
+                          : 'Nom',
+                      prefixIcon: const Icon(Icons.badge_outlined),
+                    ),
+                    validator: (v) => (v == null || v.trim().length < 2)
+                        ? 'Le nom est requis'
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  IntlPhoneField(
+                    initialCountryCode: 'CM',
+                    decoration: const InputDecoration(labelText: 'Telephone'),
+                    dropdownIconPosition: IconPosition.trailing,
+                    onChanged: (phone) => _phoneNumber = phone.completeNumber,
+                    validator: (phone) {
+                      if (phone == null || phone.number.trim().isEmpty) {
+                        return 'Numero de telephone requis';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  PinField(controller: _pinController),
+                  if (sessionState.hasError) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.errorBackground,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(_readableError(sessionState.error!)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: sessionState.isLoading ? null : _submit,
+                    child: sessionState.isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Creer mon compte'),
+                  ),
+                  const SizedBox(height: 12),
+                  // Lien retour connexion - un utilisateur qui a deja un
+                  // compte ne doit pas etre coince sur l'ecran d'inscription.
+                  TextButton(
+                    onPressed: () => context.go('/login'),
+                    child: const Text('Deja un compte ? Se connecter'),
+                  ),
                 ],
               ),
             ),
