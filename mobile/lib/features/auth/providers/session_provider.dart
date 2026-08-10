@@ -13,7 +13,7 @@ final dioClientProvider = Provider((ref) {
   final storage = ref.watch(secureStorageProvider);
   // 10.0.2.2 = alias localhost depuis l'emulateur Android. A remplacer par
   // l'URL reelle du backend en production (flavor/variable d'env).
-  return DioClient(storage, baseUrl: 'http://10.0.2.2:8080').dio;
+  return DioClient(storage, baseUrl: 'http://10.92.211.197:8180').dio;
 });
 
 final authApiProvider = Provider((ref) {
@@ -34,6 +34,7 @@ class SessionNotifier extends AsyncNotifier<UserProfile?> {
     required String lastName,
     required String phoneNumber,
     required String pin,
+    String? companyName,
   }) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => ref.read(authApiProvider).register(
@@ -42,6 +43,7 @@ class SessionNotifier extends AsyncNotifier<UserProfile?> {
           lastName: lastName,
           phoneNumber: phoneNumber,
           pin: pin,
+          companyName: companyName,
         ));
     if (state.hasValue && state.value != null) {
       // Ne bloque jamais l'inscription - voir FcmService.registerToken.

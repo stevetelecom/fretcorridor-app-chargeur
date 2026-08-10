@@ -12,6 +12,7 @@ import 'features/offers/presentation/offers_screen.dart';
 import 'features/payment/presentation/payment_screen.dart';
 import 'features/tracking/presentation/tracking_screen.dart';
 import 'features/history/presentation/history_screen.dart';
+import 'features/onboarding/presentation/onboarding_screen.dart';
 import 'home_screen.dart';
 
 Future<void> main() async {
@@ -20,6 +21,7 @@ Future<void> main() async {
   // brouillon de demande en local pour resister aux coupures reseau
   // (UC-MKT-01 E4).
   await Hive.initFlutter();
+  await Hive.openBox(OnboardingScreen.hiveBoxName);
 
   runApp(const ProviderScope(child: FretCorridorApp()));
 }
@@ -33,17 +35,22 @@ class FretCorridorApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = GoRouter(
-      initialLocation: '/login',
+      initialLocation: Hive.box(OnboardingScreen.hiveBoxName).get(OnboardingScreen.seenKey, defaultValue: false) == true
+          ? '/login'
+          : '/onboarding',
       redirect: (context, state) {
         final session = ref.read(sessionProvider);
         final isLoggedIn = session.valueOrNull != null;
         final isAuthRoute = state.matchedLocation == '/login' || state.matchedLocation == '/register';
+        final isOnboardingRoute = state.matchedLocation == '/onboarding';
 
+        if (isOnboardingRoute) return null;
         if (!isLoggedIn && !isAuthRoute) return '/login';
         if (isLoggedIn && isAuthRoute) return '/home';
         return null;
       },
       routes: [
+        GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
         GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
         GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
         GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),

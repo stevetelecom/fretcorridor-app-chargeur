@@ -14,6 +14,9 @@ class AuthApi {
     required String lastName,
     required String phoneNumber,
     required String pin,
+    // Requis uniquement pour accountType == 'ENTREPRISE' (raison sociale,
+    // cf. CDC UC-IDA-02 flux nominal etape 1). Null pour un particulier.
+    String? companyName,
   }) async {
     final response = await _dio.post('/api/auth/register', data: {
       'accountType': accountType,
@@ -21,6 +24,7 @@ class AuthApi {
       'lastName': lastName,
       'phoneNumber': phoneNumber,
       'pin': pin,
+      if (companyName != null) 'companyName': companyName,
     });
     return _persistAndReturnProfile(response.data);
   }

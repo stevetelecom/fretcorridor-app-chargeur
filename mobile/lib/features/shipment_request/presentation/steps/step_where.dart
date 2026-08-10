@@ -1,16 +1,129 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geocoding/geocoding.dart';
 import '../../providers/shipment_providers.dart';
 
-/// Etape "Où" : adresses de collecte et de destination. Les coordonnees
-/// sont saisies manuellement en V1 (voir note de simplification du plan) -
-/// validees numeriquement pour rester dans des bornes GPS plausibles.
-class StepWhere extends ConsumerWidget {
+/// Etape "Ou" : adresses de collecte et de destination. Les coordonnees
+/// sont pre-remplies automatiquement par geocodage (package geocoding,
+/// geocodeur natif Android/iOS - gratuit, sans cle API) des que l'usager
+/// quitte le champ adresse ; restent modifiables manuellement en secours
+/// si le geocodeur echoue ou trouve une adresse imprecise.
+class StepWhere extends ConsumerStatefulWidget {
   const StepWhere({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final draft = ref.watch(shipmentDraftProvider);
+  ConsumerState<StepWhere> createState() => _StepWhereState();
+}
+
+class _StepWhereState extends ConsumerState<StepWhere> {
+  late final TextEditingController _pickupAddressController;
+  late final TextEditingController _pickupLatController;
+  late final TextEditingController _pickupLngController;
+  late final TextEditingController _destinationAddressController;
+  late final TextEditingController _destinationLatController;
+  late final TextEditingController _destinationLngController;
+
+  bool _geocodingPickup = false;
+  bool _geocodingDestination = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final draft = ref.read(shipmentDraftProvider);
+    _pickupAddressController = TextEditingController(text: draft.pickupAddress);
+    _pickupLatController = TextEditingController(
+      text: draft.pickupLat?.toString(),
+    );
+    _pickupLngController = TextEditingController(
+      text: draft.pickupLng?.toString(),
+    );
+    _destinationAddressController = TextEditingController(
+      text: draft.destinationAddress,
+    );
+    _destinationLatController = TextEditingController(
+      text: draft.destinationLat?.toString(),
+    );
+    _destinationLngController = TextEditingController(
+      text: draft.destinationLng?.toString(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pickupAddressController.dispose();
+    _pickupLatController.dispose();
+    _pickupLngController.dispose();
+    _destinationAddressController.dispose();
+    _destinationLatController.dispose();
+    _destinationLngController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _geocode({
+    required String address,
+    required bool isPickup,
+  }) async {
+    if (address.trim().length < 3) return;
+
+    setState(() {
+      if (isPickup) {
+        _geocodingPickup = true;
+      } else {
+        _geocodingDestination = true;
+      }
+    });
+
+    final notifier = ref.read(shipmentDraftProvider.notifier);
+    try {
+      // Le geocodeur natif fonctionne mieux avec un contexte pays -
+      // on suffixe "Cameroun" par defaut si l'usager ne l'a pas precise,
+      // la zone CEMAC etant le perimetre principal de l'app.
+      final query = address.toLowerCase().contains('cameroun')
+          ? address
+          : '$address, Cameroun';
+      final results = await locationFromAddress(query);
+      if (results.isEmpty || !mounted) return;
+
+      final location = results.first;
+      if (isPickup) {
+        _pickupLatController.text = location.latitude.toStringAsFixed(6);
+        _pickupLngController.text = location.longitude.toStringAsFixed(6);
+        notifier.update(
+          (d) => d.copyWith(
+            pickupLat: location.latitude,
+            pickupLng: location.longitude,
+          ),
+        );
+      } else {
+        _destinationLatController.text = location.latitude.toStringAsFixed(6);
+        _destinationLngController.text = location.longitude.toStringAsFixed(6);
+        notifier.update(
+          (d) => d.copyWith(
+            destinationLat: location.latitude,
+            destinationLng: location.longitude,
+          ),
+        );
+      }
+    } catch (_) {
+      // Geocodeur indisponible ou adresse introuvable - on laisse
+      // simplement les champs lat/lng vides pour saisie manuelle,
+      // pas d'erreur bloquante affichee (l'usager peut toujours saisir
+      // les coordonnees a la main, cf. validators existants ci-dessous).
+    } finally {
+      if (mounted) {
+        setState(() {
+          if (isPickup) {
+            _geocodingPickup = false;
+          } else {
+            _geocodingDestination = false;
+          }
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final notifier = ref.read(shipmentDraftProvider.notifier);
 
     return SingleChildScrollView(
@@ -21,21 +134,39 @@ class StepWhere extends ConsumerWidget {
           Text('Collecte', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
           TextFormField(
-            initialValue: draft.pickupAddress,
-            decoration: const InputDecoration(
+            controller: _pickupAddressController,
+            decoration: InputDecoration(
               labelText: 'Adresse de collecte',
-              prefixIcon: Icon(Icons.trip_origin),
+              prefixIcon: const Icon(Icons.trip_origin),
+              suffixIcon: _geocodingPickup
+                  ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : null,
             ),
             maxLength: 255,
-            onChanged: (value) => notifier.update((d) => d.copyWith(pickupAddress: value)),
+            onChanged: (value) =>
+                notifier.update((d) => d.copyWith(pickupAddress: value)),
+            onEditingComplete: () {
+              FocusScope.of(context).unfocus();
+              _geocode(address: _pickupAddressController.text, isPickup: true);
+            },
           ),
           Row(
             children: [
               Expanded(
                 child: TextFormField(
-                  initialValue: draft.pickupLat?.toString(),
+                  controller: _pickupLatController,
                   decoration: const InputDecoration(labelText: 'Latitude'),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
                   onChanged: (value) {
                     final parsed = double.tryParse(value);
                     if (parsed != null && parsed >= -90 && parsed <= 90) {
@@ -47,9 +178,12 @@ class StepWhere extends ConsumerWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: TextFormField(
-                  initialValue: draft.pickupLng?.toString(),
+                  controller: _pickupLngController,
                   decoration: const InputDecoration(labelText: 'Longitude'),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
                   onChanged: (value) {
                     final parsed = double.tryParse(value);
                     if (parsed != null && parsed >= -180 && parsed <= 180) {
@@ -64,25 +198,48 @@ class StepWhere extends ConsumerWidget {
           Text('Destination', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
           TextFormField(
-            initialValue: draft.destinationAddress,
-            decoration: const InputDecoration(
+            controller: _destinationAddressController,
+            decoration: InputDecoration(
               labelText: 'Adresse de destination',
-              prefixIcon: Icon(Icons.flag_outlined),
+              prefixIcon: const Icon(Icons.flag_outlined),
+              suffixIcon: _geocodingDestination
+                  ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : null,
             ),
             maxLength: 255,
-            onChanged: (value) => notifier.update((d) => d.copyWith(destinationAddress: value)),
+            onChanged: (value) =>
+                notifier.update((d) => d.copyWith(destinationAddress: value)),
+            onEditingComplete: () {
+              FocusScope.of(context).unfocus();
+              _geocode(
+                address: _destinationAddressController.text,
+                isPickup: false,
+              );
+            },
           ),
           Row(
             children: [
               Expanded(
                 child: TextFormField(
-                  initialValue: draft.destinationLat?.toString(),
+                  controller: _destinationLatController,
                   decoration: const InputDecoration(labelText: 'Latitude'),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
                   onChanged: (value) {
                     final parsed = double.tryParse(value);
                     if (parsed != null && parsed >= -90 && parsed <= 90) {
-                      notifier.update((d) => d.copyWith(destinationLat: parsed));
+                      notifier.update(
+                        (d) => d.copyWith(destinationLat: parsed),
+                      );
                     }
                   },
                 ),
@@ -90,13 +247,18 @@ class StepWhere extends ConsumerWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: TextFormField(
-                  initialValue: draft.destinationLng?.toString(),
+                  controller: _destinationLngController,
                   decoration: const InputDecoration(labelText: 'Longitude'),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
                   onChanged: (value) {
                     final parsed = double.tryParse(value);
-                    if (parsed != null && parsed >= -180 && parsed <= 180) {
-                      notifier.update((d) => d.copyWith(destinationLng: parsed));
+                    if (parsed != null && parsed <= 180 && parsed >= -180) {
+                      notifier.update(
+                        (d) => d.copyWith(destinationLng: parsed),
+                      );
                     }
                   },
                 ),
