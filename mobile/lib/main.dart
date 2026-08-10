@@ -11,6 +11,7 @@ import 'features/shipment_request/presentation/shipment_wizard_screen.dart';
 import 'features/offers/presentation/offers_screen.dart';
 import 'features/payment/presentation/payment_screen.dart';
 import 'features/tracking/presentation/tracking_screen.dart';
+import 'features/history/presentation/history_screen.dart';
 import 'home_screen.dart';
 
 Future<void> main() async {
@@ -68,6 +69,7 @@ class FretCorridorApp extends ConsumerWidget {
           builder: (context, state) =>
               TrackingScreen(shipmentRequestId: state.pathParameters['id']!),
         ),
+        GoRoute(path: '/history', builder: (context, state) => const HistoryScreen()),
       ],
     );
 

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -89,6 +90,29 @@ public class ShipmentService {
         return shipmentRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
                 .map(sr -> toResponse(sr, requireCatalogItem(sr.getPackageCatalogItemId())))
                 .toList();
+    }
+
+    /**
+     * Republication (Sprint 6, UC historique). Reconstruit une
+     * ShipmentRequestCreateRequest a partir de la demande source et
+     * delegue a create() - garantit que la republication passe exactement
+     * par la meme validation (catalogue toujours actif, etc.) et le meme
+     * calcul de prix que toute nouvelle demande, sans dupliquer cette
+     * logique ici.
+     */
+    @Transactional
+    public ShipmentRequestResponse republish(UUID userId, UUID sourceId, LocalDate newPickupDate) {
+        ShipmentRequest source = shipmentRepository.findByIdAndUserId(sourceId, userId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Demande introuvable"));
+
+        ShipmentRequestCreateRequest request = new ShipmentRequestCreateRequest(
+                source.getPickupAddress(), source.getPickupLat(), source.getPickupLng(),
+                source.getDestinationAddress(), source.getDestinationLat(), source.getDestinationLng(),
+                source.getPackageCatalogItemId(), source.getQuantity(), source.isFragile(),
+                newPickupDate, source.getDeliveryMode(),
+                source.getRecipientName(), source.getRecipientPhone());
+
+        return create(userId, request);
     }
 
     @Transactional(readOnly = true)

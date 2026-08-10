@@ -40,4 +40,13 @@ public class ShipmentController {
     public ShipmentRequestResponse getOne(Principal principal, @PathVariable UUID id) {
         return shipmentService.getOne(UUID.fromString(principal.getName()), id);
     }
+
+    @PostMapping("/shipment-requests/{id}/republish")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ShipmentRequestResponse republish(
+            Principal principal,
+            @PathVariable UUID id,
+            @Valid @RequestBody RepublishRequest request) {
+        return shipmentService.republish(UUID.fromString(principal.getName()), id, request.requestedPickupDate());
+    }
 }

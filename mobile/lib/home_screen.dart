@@ -51,6 +51,12 @@ class HomeScreen extends ConsumerWidget {
                 icon: const Icon(Icons.add),
                 label: const Text('Publier une demande'),
               ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => context.go('/history'),
+                icon: const Icon(Icons.history),
+                label: const Text('Historique des envois'),
+              ),
             ],
           ),
         ),
