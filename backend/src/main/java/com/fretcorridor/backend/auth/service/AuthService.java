@@ -2,6 +2,7 @@ package com.fretcorridor.backend.auth.service;
 
 import com.fretcorridor.backend.auth.dto.*;
 import com.fretcorridor.backend.auth.entity.AccountLevel;
+import com.fretcorridor.backend.auth.entity.AccountType;
 import com.fretcorridor.backend.auth.entity.RefreshToken;
 import com.fretcorridor.backend.auth.entity.User;
 import com.fretcorridor.backend.auth.repository.RefreshTokenRepository;
@@ -48,10 +49,22 @@ public class AuthService {
                     "Un compte existe deja avec ce numero. Connectez-vous ou utilisez la recuperation de compte.");
         }
 
+        // Raison sociale obligatoire uniquement pour ENTREPRISE (CDC
+        // UC-IDA-02 etape 1) - regle metier, non exprimable proprement en
+        // Bean Validation statique car conditionnelle a un autre champ.
+        String companyName = null;
+        if (request.accountType() == AccountType.ENTREPRISE) {
+            if (request.companyName() == null || request.companyName().isBlank()) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "La raison sociale est requise pour un compte entreprise");
+            }
+            companyName = request.companyName().trim();
+        }
+
         User user = User.builder()
                 .accountType(request.accountType())
                 .firstName(request.firstName().trim())
                 .lastName(request.lastName().trim())
+                .companyName(companyName)
                 .phoneNumber(request.phoneNumber())
                 .pinHash(passwordEncoder.encode(request.pin()))
                 .accountLevel(AccountLevel.NIVEAU_0)

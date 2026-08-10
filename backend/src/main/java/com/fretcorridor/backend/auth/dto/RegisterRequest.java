@@ -32,5 +32,11 @@ public record RegisterRequest(
 
         @NotBlank(message = "Le code PIN est requis")
         @Pattern(regexp = "^\\d{4,6}$", message = "Le code PIN doit contenir entre 4 et 6 chiffres")
-        String pin
+        String pin,
+        // Optionnel au niveau DTO : le caractere obligatoire pour un
+        // compte ENTREPRISE est une regle metier verifiee dans
+        // AuthService.register (CDC UC-IDA-02), pas une contrainte Bean
+        // Validation statique liee a un autre champ.
+        @Size(max = 200, message = "La raison sociale ne doit pas depasser 200 caracteres")
+        String companyName
 ) {}

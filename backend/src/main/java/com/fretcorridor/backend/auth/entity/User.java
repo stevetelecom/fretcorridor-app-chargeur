@@ -42,6 +42,11 @@ public class User {
 
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
+    // Requise uniquement pour un compte ENTREPRISE (verifie dans
+    // AuthService.register), nulle pour un PARTICULIER - voir migration
+    // V10__add_company_name_to_users.sql.
+    @Column(name = "company_name", length = 200)
+    private String companyName;
 
     @Column(name = "phone_number", nullable = false, unique = true, length = 20)
     private String phoneNumber;
