@@ -11,6 +11,7 @@ import com.fretcorridor.backend.shipment.entity.ShipmentRequest;
 import com.fretcorridor.backend.shipment.entity.ShipmentStatus;
 import com.fretcorridor.backend.shipment.repository.OfferRepository;
 import com.fretcorridor.backend.shipment.repository.ShipmentRequestRepository;
+import com.fretcorridor.backend.tracking.service.ShipmentTrackingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class PaymentService {
     private final OfferRepository offerRepository;
     private final PaymentRepository paymentRepository;
     private final PaymentProvider paymentProvider;
+    private final ShipmentTrackingService trackingService;
 
     @Transactional
     public PaymentResponse initiate(UUID userId, UUID shipmentRequestId, UUID offerId) {
@@ -67,8 +69,7 @@ public class PaymentService {
         payment = paymentRepository.save(payment);
 
         if (result.success()) {
-            shipmentRequest.setStatus(ShipmentStatus.EN_COURS);
-            shipmentRepository.save(shipmentRequest);
+            trackingService.changeStatus(shipmentRequest, ShipmentStatus.EN_COURS);
         }
         // En cas d'echec : la demande reste ACCEPTEE, le chargeur peut
         // reessayer (pas de transition d'etat, pas de nouvelle offre requise).

@@ -7,6 +7,7 @@ import com.fretcorridor.backend.shipment.entity.ShipmentRequest;
 import com.fretcorridor.backend.shipment.entity.ShipmentStatus;
 import com.fretcorridor.backend.shipment.repository.PackageCatalogItemRepository;
 import com.fretcorridor.backend.shipment.repository.ShipmentRequestRepository;
+import com.fretcorridor.backend.tracking.service.ShipmentTrackingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class ShipmentService {
     private final PackageCatalogItemRepository catalogRepository;
     private final ShipmentRequestRepository shipmentRepository;
     private final PriceEstimationService priceEstimationService;
+    private final ShipmentTrackingService trackingService;
 
     @Transactional(readOnly = true)
     public List<PackageCatalogItemResponse> listCatalog() {
@@ -52,9 +54,11 @@ public class ShipmentService {
         // metier plutot que confiance aveugle dans l'input.
         boolean fragile = request.fragile() || item.isFragileByDefault();
 
+        // Statut initial pose via trackingService juste apres l'insert (et non
+        // dans le builder) afin que la creation de la demande genere aussi la
+        // toute premiere ligne de la chronologie d'etats.
         ShipmentRequest entity = ShipmentRequest.builder()
                 .userId(userId)
-                .status(ShipmentStatus.PUBLIEE)
                 .pickupAddress(request.pickupAddress().trim())
                 .pickupLat(request.pickupLat())
                 .pickupLng(request.pickupLng())
@@ -76,6 +80,7 @@ public class ShipmentService {
                 .build();
 
         entity = shipmentRepository.save(entity);
+        trackingService.changeStatus(entity, ShipmentStatus.PUBLIEE);
         return toResponse(entity, item);
     }
 

@@ -10,6 +10,7 @@ import 'features/auth/providers/session_provider.dart';
 import 'features/shipment_request/presentation/shipment_wizard_screen.dart';
 import 'features/offers/presentation/offers_screen.dart';
 import 'features/payment/presentation/payment_screen.dart';
+import 'features/tracking/presentation/tracking_screen.dart';
 import 'home_screen.dart';
 
 Future<void> main() async {
@@ -61,6 +62,11 @@ class FretCorridorApp extends ConsumerWidget {
               amountXaf: extra['amountXaf'] as double,
             );
           },
+        ),
+        GoRoute(
+          path: '/shipment/:id/tracking',
+          builder: (context, state) =>
+              TrackingScreen(shipmentRequestId: state.pathParameters['id']!),
         ),
       ],
     );

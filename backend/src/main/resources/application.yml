@@ -25,6 +25,11 @@ app:
     secret: ${JWT_SECRET:change_me_en_local_uniquement}
     expiration-ms: ${JWT_EXPIRATION_MS:3600000}
     refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
+  admin:
+    # Cle du mini-outil admin (AdminApiKeyInterceptor) - totalement separee
+    # du JWT chargeur. A generer avec `openssl rand -hex 32` et a ne JAMAIS
+    # committer la vraie valeur (seul ce defaut de dev va dans le repo).
+    api-key: ${ADMIN_API_KEY:change_me_admin_key_en_local}
 
 server:
   port: 8080

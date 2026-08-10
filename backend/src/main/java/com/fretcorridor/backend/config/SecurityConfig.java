@@ -31,7 +31,8 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/api/auth/register",
             "/api/auth/login",
-            "/api/auth/refresh"
+            "/api/auth/refresh",
+            "/api/admin/**"  // securise separement par AdminApiKeyInterceptor
     };
 
     @Bean

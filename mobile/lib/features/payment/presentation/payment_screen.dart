@@ -44,7 +44,7 @@ class PaymentScreen extends ConsumerWidget {
         if (payment == null) return;
         if (payment.status == 'REUSSI') {
           AppToast.success('Paiement réussi — transport en cours d\'organisation');
-          context.go('/home');
+          context.go('/shipment/$shipmentRequestId/tracking');
         } else {
           // ECHOUE : reste sur l'ecran, le chargeur peut reessayer
           // immediatement (pas de nouvelle acceptation requise).

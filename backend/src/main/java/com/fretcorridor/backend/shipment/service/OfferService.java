@@ -8,6 +8,7 @@ import com.fretcorridor.backend.shipment.entity.ShipmentRequest;
 import com.fretcorridor.backend.shipment.entity.ShipmentStatus;
 import com.fretcorridor.backend.shipment.repository.OfferRepository;
 import com.fretcorridor.backend.shipment.repository.ShipmentRequestRepository;
+import com.fretcorridor.backend.tracking.service.ShipmentTrackingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class OfferService {
     private final ShipmentRequestRepository shipmentRepository;
     private final OfferRepository offerRepository;
     private final MockOfferGenerationService mockOfferGenerationService;
+    private final ShipmentTrackingService trackingService;
 
     /**
      * Recupere les offres d'une demande - les genere a la premiere
@@ -41,8 +43,7 @@ public class OfferService {
             List<Offer> generated = mockOfferGenerationService.generateFor(shipmentRequest);
             existing = offerRepository.saveAll(generated);
 
-            shipmentRequest.setStatus(ShipmentStatus.OFFRE_RECUE);
-            shipmentRepository.save(shipmentRequest);
+            trackingService.changeStatus(shipmentRequest, ShipmentStatus.OFFRE_RECUE);
         }
 
         return existing.stream().map(this::toResponse).toList();
@@ -80,8 +81,7 @@ public class OfferService {
                     offerRepository.save(o);
                 });
 
-        shipmentRequest.setStatus(ShipmentStatus.ACCEPTEE);
-        shipmentRepository.save(shipmentRequest);
+        trackingService.changeStatus(shipmentRequest, ShipmentStatus.ACCEPTEE);
 
         return toResponse(offer);
     }

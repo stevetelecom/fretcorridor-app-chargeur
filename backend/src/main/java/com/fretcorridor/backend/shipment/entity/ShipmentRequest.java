@@ -85,6 +85,23 @@ public class ShipmentRequest {
     @Column(name = "estimated_price_max", nullable = false, precision = 12, scale = 2)
     private BigDecimal estimatedPriceMax;
 
+    // Sprint 5 (tracking) : derniere position connue, simplifiee a un seul
+    // point (pas d'historique de trajet) - voir ShipmentTrackingService.
+    @Column(name = "last_position_lat")
+    private Double lastPositionLat;
+
+    @Column(name = "last_position_lng")
+    private Double lastPositionLng;
+
+    @Column(name = "last_position_recorded_at")
+    private Instant lastPositionRecordedAt;
+
+    @Column(name = "delivery_proof_photo_url", length = 500)
+    private String deliveryProofPhotoUrl;
+
+    @Column(name = "delivered_at")
+    private Instant deliveredAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
