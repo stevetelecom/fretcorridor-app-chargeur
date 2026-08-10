@@ -127,6 +127,15 @@
             <artifactId>postgresql</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Firebase Admin SDK - envoi des notifications push (module notification,
+             Sprint 5 rattrape). Utilise uniquement pour Cloud Messaging (FCM),
+             pas Firestore ni Auth. -->
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>9.4.1</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>

@@ -25,3 +25,7 @@ mobile/ios/.symlinks/
 .env
 *.env
 !.env.example
+
+# --- Firebase (notifications push) ---
+mobile/android/app/google-services.json
+backend/firebase-service-account.json

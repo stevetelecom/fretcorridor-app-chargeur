@@ -67,6 +67,28 @@ class PaymentScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Badge obligatoire (points de vigilance V1 du plan) : le
+            // paiement est simule (SimulatedPaymentProvider cote backend),
+            // ca doit rester visible et honnete a tout moment, demo ou pas.
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.amber.shade300),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.info_outline, size: 16, color: Colors.amber.shade800),
+                  const SizedBox(width: 8),
+                  Text('Mode démonstration — paiement simulé',
+                      style: Theme.of(context).textTheme.bodySmall
+                          ?.copyWith(color: Colors.amber.shade900, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(

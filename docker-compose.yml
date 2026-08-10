@@ -31,6 +31,12 @@ services:
       - .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      # Chemin DANS le conteneur (voir volumes ci-dessous) - jamais le
+      # chemin local, qui n'existe pas a l'interieur de l'image.
+      FIREBASE_CREDENTIALS_PATH: /run/secrets/firebase-service-account.json
+    volumes:
+      # Lecture seule : le backend n'a jamais besoin d'ecrire ce fichier.
+      - ./backend/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
     ports:
       - "${BACKEND_HOST_PORT}:8080"
     networks:

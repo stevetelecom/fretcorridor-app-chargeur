@@ -65,6 +65,15 @@ public class User {
     @Column(name = "locked_until")
     private Instant lockedUntil;
 
+    // Sprint 5 (notification, rattrape) : token FCM du dernier appareil
+    // connu - voir NotificationService pour l'envoi et DeviceTokenController
+    // pour l'enregistrement.
+    @Column(name = "fcm_token")
+    private String fcmToken;
+
+    @Column(name = "fcm_token_updated_at")
+    private Instant fcmTokenUpdatedAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

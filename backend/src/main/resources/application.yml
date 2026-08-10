@@ -30,6 +30,11 @@ app:
     # du JWT chargeur. A generer avec `openssl rand -hex 32` et a ne JAMAIS
     # committer la vraie valeur (seul ce defaut de dev va dans le repo).
     api-key: ${ADMIN_API_KEY:change_me_admin_key_en_local}
+  firebase:
+    # En local (hors Docker) : chemin relatif vers backend/firebase-service-account.json
+    # (jamais commite, voir .gitignore). En Docker : ecrase par FIREBASE_CREDENTIALS_PATH
+    # dans docker-compose.yml, qui pointe vers le fichier monte en volume.
+    credentials-path: ${FIREBASE_CREDENTIALS_PATH:firebase-service-account.json}
 
 server:
   port: 8080
