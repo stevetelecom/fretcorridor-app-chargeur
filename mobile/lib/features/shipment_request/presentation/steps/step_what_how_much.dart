@@ -120,13 +120,17 @@ class _CatalogCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Charte stricte FretCorridor (rouge/noir/blanc) : pas de gris
+    // neutre - fond blanc, contour et icone en noir franc au repos, tout
+    // bascule en rouge de marque a la selection (fond teinte, contour et
+    // icone rouges, texte en gras pour renforcer l'etat actif).
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
         color: selected ? AppColors.primary.withValues(alpha: 0.08) : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: selected ? AppColors.primary : Colors.grey.shade300,
+          color: selected ? AppColors.primary : Colors.black87,
           width: selected ? 2 : 1,
         ),
       ),
@@ -138,12 +142,15 @@ class _CatalogCard extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 28, color: selected ? AppColors.primary : Colors.black54),
+              Icon(icon, size: 28, color: selected ? AppColors.primary : Colors.black87),
               const SizedBox(height: 8),
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: selected ? AppColors.primary : Colors.black87,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                    ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),

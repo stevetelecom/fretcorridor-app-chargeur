@@ -13,7 +13,7 @@ final dioClientProvider = Provider((ref) {
   final storage = ref.watch(secureStorageProvider);
   // 10.0.2.2 = alias localhost depuis l'emulateur Android. A remplacer par
   // l'URL reelle du backend en production (flavor/variable d'env).
-  return DioClient(storage, baseUrl: 'http://10.92.211.197:8180').dio;
+  return DioClient(storage, baseUrl: 'http://10.76.133.197:8180').dio;
 });
 
 final authApiProvider = Provider((ref) {

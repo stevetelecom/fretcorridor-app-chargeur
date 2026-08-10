@@ -22,6 +22,8 @@ class _StepWhereState extends ConsumerState<StepWhere> {
   late final TextEditingController _destinationAddressController;
   late final TextEditingController _destinationLatController;
   late final TextEditingController _destinationLngController;
+  late final FocusNode _pickupFocusNode;
+  late final FocusNode _destinationFocusNode;
 
   bool _geocodingPickup = false;
   bool _geocodingDestination = false;
@@ -46,6 +48,22 @@ class _StepWhereState extends ConsumerState<StepWhere> {
     _destinationLngController = TextEditingController(
       text: draft.destinationLng?.toString(),
     );
+
+    _pickupFocusNode = FocusNode()
+      ..addListener(() {
+        if (!_pickupFocusNode.hasFocus) {
+          _geocode(address: _pickupAddressController.text, isPickup: true);
+        }
+      });
+    _destinationFocusNode = FocusNode()
+      ..addListener(() {
+        if (!_destinationFocusNode.hasFocus) {
+          _geocode(
+            address: _destinationAddressController.text,
+            isPickup: false,
+          );
+        }
+      });
   }
 
   @override
@@ -56,6 +74,8 @@ class _StepWhereState extends ConsumerState<StepWhere> {
     _destinationAddressController.dispose();
     _destinationLatController.dispose();
     _destinationLngController.dispose();
+    _pickupFocusNode.dispose();
+    _destinationFocusNode.dispose();
     super.dispose();
   }
 
@@ -135,6 +155,7 @@ class _StepWhereState extends ConsumerState<StepWhere> {
           const SizedBox(height: 12),
           TextFormField(
             controller: _pickupAddressController,
+            focusNode: _pickupFocusNode,
             decoration: InputDecoration(
               labelText: 'Adresse de collecte',
               prefixIcon: const Icon(Icons.trip_origin),
@@ -152,10 +173,7 @@ class _StepWhereState extends ConsumerState<StepWhere> {
             maxLength: 255,
             onChanged: (value) =>
                 notifier.update((d) => d.copyWith(pickupAddress: value)),
-            onEditingComplete: () {
-              FocusScope.of(context).unfocus();
-              _geocode(address: _pickupAddressController.text, isPickup: true);
-            },
+            onEditingComplete: () => FocusScope.of(context).unfocus(),
           ),
           Row(
             children: [
@@ -199,6 +217,7 @@ class _StepWhereState extends ConsumerState<StepWhere> {
           const SizedBox(height: 12),
           TextFormField(
             controller: _destinationAddressController,
+            focusNode: _destinationFocusNode,
             decoration: InputDecoration(
               labelText: 'Adresse de destination',
               prefixIcon: const Icon(Icons.flag_outlined),
@@ -216,13 +235,7 @@ class _StepWhereState extends ConsumerState<StepWhere> {
             maxLength: 255,
             onChanged: (value) =>
                 notifier.update((d) => d.copyWith(destinationAddress: value)),
-            onEditingComplete: () {
-              FocusScope.of(context).unfocus();
-              _geocode(
-                address: _destinationAddressController.text,
-                isPickup: false,
-              );
-            },
+            onEditingComplete: () => FocusScope.of(context).unfocus(),
           ),
           Row(
             children: [

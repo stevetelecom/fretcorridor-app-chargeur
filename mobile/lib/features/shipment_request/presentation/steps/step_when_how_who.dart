@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import '../../providers/shipment_providers.dart';
 
 /// Etape "Quand/Comment/Qui reçoit" : date d'enlevement souhaitee, mode de
@@ -64,15 +65,15 @@ class StepWhenHowWho extends ConsumerWidget {
             maxLength: 150,
             onChanged: (value) => notifier.update((d) => d.copyWith(recipientName: value)),
           ),
-          TextFormField(
-            initialValue: draft.recipientPhone,
+          IntlPhoneField(
+            initialCountryCode: 'CM',
             decoration: const InputDecoration(
               labelText: 'Téléphone du destinataire',
               prefixIcon: Icon(Icons.phone_outlined),
-              hintText: '+237...',
             ),
-            keyboardType: TextInputType.phone,
-            onChanged: (value) => notifier.update((d) => d.copyWith(recipientPhone: value)),
+            dropdownIconPosition: IconPosition.trailing,
+            onChanged: (phone) =>
+                notifier.update((d) => d.copyWith(recipientPhone: phone.completeNumber)),
           ),
         ],
       ),

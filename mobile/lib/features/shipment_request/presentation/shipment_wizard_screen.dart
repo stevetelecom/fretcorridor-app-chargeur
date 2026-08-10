@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_toast.dart';
+import '../../../core/common/api_exception.dart';
+import 'package:dio/dio.dart';
 import '../providers/shipment_providers.dart';
 import 'steps/step_where.dart';
 import 'steps/step_what_how_much.dart';
@@ -51,8 +53,19 @@ class _ShipmentWizardScreenState extends ConsumerState<ShipmentWizardScreen> {
           context.go('/home');
         }
       },
-      error: (error, _) => AppToast.error('Erreur lors de la publication. Réessayez.'),
+      error: (error, _) => AppToast.error(_readableError(error)),
     );
+  }
+
+  String _readableError(Object error) {
+    if (error is DraftIncompleteException) {
+      return 'Certains champs obligatoires sont manquants. Revenez en arrière.';
+    }
+    if (error is DioException && error.response?.data is Map) {
+      final message = error.response!.data['message'];
+      if (message is String) return message;
+    }
+    return 'Erreur lors de la publication. Réessayez.';
   }
 
   @override

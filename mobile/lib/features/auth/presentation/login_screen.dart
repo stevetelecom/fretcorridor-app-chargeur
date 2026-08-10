@@ -90,6 +90,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     initialCountryCode: 'CM',
                     decoration: const InputDecoration(
                       labelText: 'Telephone',
+                      prefixIcon: Icon(Icons.phone_outlined),
                     ),
                     dropdownIconPosition: IconPosition.trailing,
                     onChanged: (phone) =>

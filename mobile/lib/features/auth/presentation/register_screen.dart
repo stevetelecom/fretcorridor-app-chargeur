@@ -198,7 +198,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 16),
                   IntlPhoneField(
                     initialCountryCode: 'CM',
-                    decoration: const InputDecoration(labelText: 'Telephone'),
+                    decoration: const InputDecoration(
+                    labelText: 'Telephone',
+                    prefixIcon: Icon(Icons.phone_outlined),
+                  ),
                     dropdownIconPosition: IconPosition.trailing,
                     onChanged: (phone) => _phoneNumber = phone.completeNumber,
                     validator: (phone) {

@@ -3,6 +3,7 @@ import '../../auth/providers/session_provider.dart';
 import '../data/draft_storage_service.dart';
 import '../data/models/package_catalog_item.dart';
 import '../data/models/shipment_request_draft.dart';
+import '../../../core/common/api_exception.dart';
 import '../data/shipment_api.dart';
 
 final draftStorageProvider = Provider((ref) => DraftStorageService());
@@ -56,6 +57,16 @@ class ShipmentSubmissionNotifier extends AsyncNotifier<Map<String, dynamic>?> {
 
   Future<void> submit() async {
     final draft = ref.read(shipmentDraftProvider);
+    // Garde-fou avant l'appel reseau : un draft incomplet ne doit jamais
+    // partir vers le backend (evite un aller-retour reseau inutile et une
+    // 400 generique qui masquerait le vrai champ manquant a l'utilisateur).
+    if (!draft.isComplete) {
+      state = AsyncError(
+        const DraftIncompleteException(),
+        StackTrace.current,
+      );
+      return;
+    }
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => ref.read(shipmentApiProvider).create(draft));
     if (!state.hasError) {
