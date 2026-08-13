@@ -16,7 +16,7 @@ final secureStorageProvider = Provider((ref) => SecureStorageService());
 // par defaut qui casse a chaque changement de reseau local.
 const _apiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'http://10.76.133.197:8180',
+  defaultValue: 'https://fretcorridor-app-chargeur.onrender.com',
 );
 
 final dioClientProvider = Provider((ref) {
