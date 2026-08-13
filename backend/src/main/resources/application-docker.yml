@@ -1,3 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://db:5432/${DB_NAME}
+    # 'db' = nom du service dans docker-compose.yml (reseau Docker local) -
+    # valeur par defaut uniquement. En production (Render), DB_HOST et
+    # DB_PORT sont fournis en variables d'environnement et remplacent ce
+    # defaut - sans ca, l'app tentait de resoudre l'hote litteral "db",
+    # qui n'existe evidemment pas hors du reseau Docker Compose.
+    url: jdbc:postgresql://${DB_HOST:db}:${DB_PORT:5432}/${DB_NAME}

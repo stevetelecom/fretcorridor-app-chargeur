@@ -9,11 +9,19 @@ import '../data/models/user_profile.dart';
 
 final secureStorageProvider = Provider((ref) => SecureStorageService());
 
+// URL du backend injectee au build via --dart-define=API_BASE_URL=...
+// (voir CI mobile-ci.yml). Fallback sur l'IP locale de dev si absent,
+// pratique pour `flutter run` sans argument pendant le developpement -
+// mais TOUJOURS fournie explicitement en CI/release, jamais cette valeur
+// par defaut qui casse a chaque changement de reseau local.
+const _apiBaseUrl = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'http://10.76.133.197:8180',
+);
+
 final dioClientProvider = Provider((ref) {
   final storage = ref.watch(secureStorageProvider);
-  // 10.0.2.2 = alias localhost depuis l'emulateur Android. A remplacer par
-  // l'URL reelle du backend en production (flavor/variable d'env).
-  return DioClient(storage, baseUrl: 'http://192.168.1.129:8180').dio;
+  return DioClient(storage, baseUrl: _apiBaseUrl).dio;
 });
 
 final authApiProvider = Provider((ref) {
