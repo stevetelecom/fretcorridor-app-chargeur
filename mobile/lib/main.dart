@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'core/providers/locale_provider.dart';
 import 'core/theme/app_theme.dart';
+import 'l10n/app_localizations.dart';
 import 'features/auth/presentation/login_screen.dart';
 import 'features/auth/presentation/register_screen.dart';
 import 'features/auth/providers/session_provider.dart';
@@ -29,19 +31,38 @@ Future<void> main() async {
 /// Redirection centrale : les ecrans proteges (home, nouvelle demande)
 /// exigent une session active ; login/register restent accessibles sans
 /// session. Evite de dupliquer ce controle dans chaque ecran.
-class FretCorridorApp extends ConsumerWidget {
+///
+/// ConsumerStatefulWidget + GoRouter construit une seule fois dans
+/// initState (et non dans build()) : le router NE DOIT PAS etre recree a
+/// chaque rebuild, sinon chaque changement de locale (qui declenche un
+/// rebuild via ref.watch(localeProvider) plus bas) regenererait un routeur
+/// tout neuf et ecraserait la position de navigation en cours - c'etait le
+/// bug observe ou changer de langue renvoyait vers /login. Le controle de
+/// session (isLoggedIn) reste dynamique via ref.read (relu a chaque
+/// redirect(), pas fige a la construction).
+class FretCorridorApp extends ConsumerStatefulWidget {
   const FretCorridorApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final router = GoRouter(
-      initialLocation: Hive.box(OnboardingScreen.hiveBoxName).get(OnboardingScreen.seenKey, defaultValue: false) == true
-          ? '/login'
-          : '/onboarding',
+  ConsumerState<FretCorridorApp> createState() => _FretCorridorAppState();
+}
+
+class _FretCorridorAppState extends ConsumerState<FretCorridorApp> {
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    _router = GoRouter(
+      // Toujours la landing page au demarrage de l'app, meme apres un
+      // premier lancement anterieur.
+      initialLocation: '/onboarding',
       redirect: (context, state) {
         final session = ref.read(sessionProvider);
         final isLoggedIn = session.valueOrNull != null;
-        final isAuthRoute = state.matchedLocation == '/login' || state.matchedLocation == '/register';
+        final isAuthRoute =
+            state.matchedLocation == '/login' ||
+            state.matchedLocation == '/register';
         final isOnboardingRoute = state.matchedLocation == '/onboarding';
 
         if (isOnboardingRoute) return null;
@@ -50,14 +71,27 @@ class FretCorridorApp extends ConsumerWidget {
         return null;
       },
       routes: [
-        GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
-        GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-        GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
+        GoRoute(
+          path: '/onboarding',
+          builder: (context, state) => const OnboardingScreen(),
+        ),
+        GoRoute(
+          path: '/login',
+          builder: (context, state) => const LoginScreen(),
+        ),
+        GoRoute(
+          path: '/register',
+          builder: (context, state) => const RegisterScreen(),
+        ),
         GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
-        GoRoute(path: '/shipment/new', builder: (context, state) => const ShipmentWizardScreen()),
+        GoRoute(
+          path: '/shipment/new',
+          builder: (context, state) => const ShipmentWizardScreen(),
+        ),
         GoRoute(
           path: '/shipment/:id/offers',
-          builder: (context, state) => OffersScreen(shipmentRequestId: state.pathParameters['id']!),
+          builder: (context, state) =>
+              OffersScreen(shipmentRequestId: state.pathParameters['id']!),
         ),
         GoRoute(
           path: '/shipment/:id/payment',
@@ -76,15 +110,30 @@ class FretCorridorApp extends ConsumerWidget {
           builder: (context, state) =>
               TrackingScreen(shipmentRequestId: state.pathParameters['id']!),
         ),
-        GoRoute(path: '/history', builder: (context, state) => const HistoryScreen()),
+        GoRoute(
+          path: '/history',
+          builder: (context, state) => const HistoryScreen(),
+        ),
       ],
     );
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'FretCorridor',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      routerConfig: router,
+      // Bilingue FR/EN (Sprint 7) - genere par flutter gen-l10n depuis
+      // lib/l10n/app_fr.arb et app_en.arb (voir l10n.yaml a la racine du
+      // module mobile). Le francais est la langue source (template-arb-file)
+      // et sert de repli si la locale de l'appareil n'est ni fr ni en.
+      // ref.watch ici ne reconstruit QUE MaterialApp.router (locale/theme),
+      // plus jamais _router lui-meme (construit une seule fois ci-dessus).
+      locale: ref.watch(localeProvider),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      routerConfig: _router,
     );
   }
 }

@@ -29,3 +29,4 @@ mobile/ios/.symlinks/
 # --- Firebase (notifications push) ---
 mobile/android/app/google-services.json
 backend/firebase-service-account.json
+mobile/android/key.properties

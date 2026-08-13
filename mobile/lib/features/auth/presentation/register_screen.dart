@@ -6,7 +6,9 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_toast.dart';
 import '../../../core/widgets/video_background_scaffold.dart';
+import '../../../core/widgets/language_toggle.dart';
 import '../../../core/widgets/pin_field.dart';
+import '../../../l10n/app_localizations.dart';
 import '../providers/session_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -57,36 +59,39 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         );
 
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     final state = ref.read(sessionProvider);
     state.whenOrNull(
       data: (user) {
         if (user != null) {
-          AppToast.success('Compte cree avec succes');
+          AppToast.success(l10n.registerSuccess);
           context.go('/home');
         }
       },
-      error: (error, _) => AppToast.error(_readableError(error)),
+      error: (error, _) => AppToast.error(_readableError(error, l10n)),
     );
   }
 
-  String _readableError(Object error) {
+  String _readableError(Object error, AppLocalizations l10n) {
     if (error is DioException && error.response?.data is Map) {
       final message = error.response!.data['message'];
       if (message is String) return message;
     }
-    return 'Erreur lors de l\'inscription.';
+    return l10n.registerError;
   }
 
   @override
   Widget build(BuildContext context) {
     final sessionState = ref.watch(sessionProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return VideoBackgroundScaffold(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.white),
-        tooltip: 'Retour',
+        tooltip: l10n.back,
         onPressed: () => context.go('/login'),
       ),
+      trailing: const LanguageToggle(),
       child: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -109,7 +114,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Creer un compte',
+                    l10n.createAccount,
                     style: Theme.of(context).textTheme.headlineSmall,
                     textAlign: TextAlign.center,
                   ),
@@ -121,28 +126,26 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppColors.errorBorder),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.info_outline, color: AppColors.primary),
-                        SizedBox(width: 12),
+                        const Icon(Icons.info_outline, color: AppColors.primary),
+                        const SizedBox(width: 12),
                         Expanded(
-                          child: Text(
-                            'Inscription rapide - vous pourrez completer votre profil plus tard.',
-                          ),
+                          child: Text(l10n.quickRegisterBanner),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
                   SegmentedButton<String>(
-                    segments: const [
+                    segments: [
                       ButtonSegment(
                         value: 'PARTICULIER',
-                        label: Text('Particulier'),
+                        label: Text(l10n.individualAccountType),
                       ),
                       ButtonSegment(
                         value: 'ENTREPRISE',
-                        label: Text('Entreprise'),
+                        label: Text(l10n.companyAccountType),
                       ),
                     ],
                     selected: {_accountType},
@@ -156,14 +159,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   if (_accountType == 'ENTREPRISE') ...[
                     TextFormField(
                       controller: _companyNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Raison sociale',
-                        prefixIcon: Icon(Icons.apartment_outlined),
+                      decoration: InputDecoration(
+                        labelText: l10n.companyNameLabel,
+                        prefixIcon: const Icon(Icons.apartment_outlined),
                       ),
                       validator: (v) =>
                           (_accountType == 'ENTREPRISE' &&
                               (v == null || v.trim().length < 2))
-                          ? 'La raison sociale est requise'
+                          ? l10n.companyNameRequired
                           : null,
                     ),
                     const SizedBox(height: 16),
@@ -174,12 +177,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       // Libelle contextuel : pour une entreprise, ce champ
                       // designe le contact, pas l'entite elle-meme.
                       labelText: _accountType == 'ENTREPRISE'
-                          ? 'Prenom du contact'
-                          : 'Prenom',
+                          ? l10n.firstNameContactLabel
+                          : l10n.firstNameLabel,
                       prefixIcon: const Icon(Icons.person_outline),
                     ),
                     validator: (v) => (v == null || v.trim().length < 2)
-                        ? 'Le prenom est requis'
+                        ? l10n.firstNameRequired
                         : null,
                   ),
                   const SizedBox(height: 16),
@@ -187,26 +190,26 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     controller: _lastNameController,
                     decoration: InputDecoration(
                       labelText: _accountType == 'ENTREPRISE'
-                          ? 'Nom du contact'
-                          : 'Nom',
+                          ? l10n.lastNameContactLabel
+                          : l10n.lastNameLabel,
                       prefixIcon: const Icon(Icons.badge_outlined),
                     ),
                     validator: (v) => (v == null || v.trim().length < 2)
-                        ? 'Le nom est requis'
+                        ? l10n.lastNameRequired
                         : null,
                   ),
                   const SizedBox(height: 16),
                   IntlPhoneField(
                     initialCountryCode: 'CM',
-                    decoration: const InputDecoration(
-                    labelText: 'Telephone',
-                    prefixIcon: Icon(Icons.phone_outlined),
+                    decoration: InputDecoration(
+                    labelText: l10n.phoneLabel,
+                    prefixIcon: const Icon(Icons.phone_outlined),
                   ),
                     dropdownIconPosition: IconPosition.trailing,
                     onChanged: (phone) => _phoneNumber = phone.completeNumber,
                     validator: (phone) {
                       if (phone == null || phone.number.trim().isEmpty) {
-                        return 'Numero de telephone requis';
+                        return l10n.phoneRequired;
                       }
                       return null;
                     },
@@ -229,7 +232,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(_readableError(sessionState.error!)),
+                            child: Text(_readableError(sessionState.error!, l10n)),
                           ),
                         ],
                       ),
@@ -247,14 +250,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text('Creer mon compte'),
+                        : Text(l10n.createMyAccountButton),
                   ),
                   const SizedBox(height: 12),
                   // Lien retour connexion - un utilisateur qui a deja un
                   // compte ne doit pas etre coince sur l'ecran d'inscription.
                   TextButton(
                     onPressed: () => context.go('/login'),
-                    child: const Text('Deja un compte ? Se connecter'),
+                    child: Text(l10n.alreadyHaveAccount),
                   ),
                 ],
               ),

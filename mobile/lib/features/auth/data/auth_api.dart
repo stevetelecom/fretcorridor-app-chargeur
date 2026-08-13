@@ -18,22 +18,28 @@ class AuthApi {
     // cf. CDC UC-IDA-02 flux nominal etape 1). Null pour un particulier.
     String? companyName,
   }) async {
-    final response = await _dio.post('/api/auth/register', data: {
-      'accountType': accountType,
-      'firstName': firstName,
-      'lastName': lastName,
-      'phoneNumber': phoneNumber,
-      'pin': pin,
-      if (companyName != null) 'companyName': companyName,
-    });
+    final response = await _dio.post(
+      '/api/auth/register',
+      data: {
+        'accountType': accountType,
+        'firstName': firstName,
+        'lastName': lastName,
+        'phoneNumber': phoneNumber,
+        'pin': pin,
+        'companyName': ?companyName,
+      },
+    );
     return _persistAndReturnProfile(response.data);
   }
 
-  Future<UserProfile> login({required String phoneNumber, required String pin}) async {
-    final response = await _dio.post('/api/auth/login', data: {
-      'phoneNumber': phoneNumber,
-      'pin': pin,
-    });
+  Future<UserProfile> login({
+    required String phoneNumber,
+    required String pin,
+  }) async {
+    final response = await _dio.post(
+      '/api/auth/login',
+      data: {'phoneNumber': phoneNumber, 'pin': pin},
+    );
     return _persistAndReturnProfile(response.data);
   }
 
@@ -41,7 +47,10 @@ class AuthApi {
     final refreshToken = await _secureStorage.readRefreshToken();
     if (refreshToken != null) {
       try {
-        await _dio.post('/api/auth/logout', data: {'refreshToken': refreshToken});
+        await _dio.post(
+          '/api/auth/logout',
+          data: {'refreshToken': refreshToken},
+        );
       } catch (_) {
         // la deconnexion locale doit reussir meme si l'appel reseau echoue
       }
@@ -49,7 +58,9 @@ class AuthApi {
     await _secureStorage.clear();
   }
 
-  Future<UserProfile> _persistAndReturnProfile(Map<String, dynamic> data) async {
+  Future<UserProfile> _persistAndReturnProfile(
+    Map<String, dynamic> data,
+  ) async {
     await _secureStorage.saveTokens(
       accessToken: data['accessToken'],
       refreshToken: data['refreshToken'],

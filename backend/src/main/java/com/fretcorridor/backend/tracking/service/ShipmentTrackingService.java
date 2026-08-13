@@ -4,6 +4,9 @@ import com.fretcorridor.backend.auth.entity.User;
 import com.fretcorridor.backend.auth.repository.UserRepository;
 import com.fretcorridor.backend.common.exception.ApiException;
 import com.fretcorridor.backend.notification.service.NotificationService;
+import com.fretcorridor.backend.payment.entity.Payment;
+import com.fretcorridor.backend.payment.entity.PaymentStatus;
+import com.fretcorridor.backend.payment.repository.PaymentRepository;
 import com.fretcorridor.backend.shipment.entity.ShipmentRequest;
 import com.fretcorridor.backend.shipment.entity.ShipmentStatus;
 import com.fretcorridor.backend.shipment.repository.ShipmentRequestRepository;
@@ -39,6 +42,10 @@ public class ShipmentTrackingService {
     private final ShipmentStatusHistoryRepository historyRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    // PaymentRepository (pas PaymentService) volontairement : injecter
+    // PaymentService creerait un cycle PaymentService -> ShipmentTrackingService
+    // -> PaymentService. Le repository suffit pour la liberation du sequestre.
+    private final PaymentRepository paymentRepository;
 
     // Libelles FR courts pour le corps de la notification push - distincts
     // des libelles plus longs de l'ecran de suivi Flutter (pas besoin de
@@ -101,6 +108,23 @@ public class ShipmentTrackingService {
         shipmentRequest.setDeliveryProofPhotoUrl(photoUrl);
         shipmentRequest.setDeliveredAt(Instant.now());
         changeStatus(shipmentRequest, ShipmentStatus.LIVREE);
+        releaseEscrowIfAny(shipmentRequestId);
+    }
+
+    /**
+     * Libere le sequestre (UC-PAY-02) : la livraison venant d'etre
+     * confirmee, les fonds retenus depuis le paiement sont marques comme
+     * verses au transporteur. Ne fait rien si aucun paiement SEQUESTRE
+     * n'existe (ex. demande annulee avant paiement puis forcee a LIVREE
+     * par erreur admin - ne doit pas lever d'exception ici).
+     */
+    private void releaseEscrowIfAny(UUID shipmentRequestId) {
+        paymentRepository.findByShipmentRequestId(shipmentRequestId)
+                .filter(p -> p.getStatus() == PaymentStatus.SEQUESTRE)
+                .ifPresent(payment -> {
+                    payment.setStatus(PaymentStatus.LIBERE);
+                    paymentRepository.save(payment);
+                });
     }
 
     /**

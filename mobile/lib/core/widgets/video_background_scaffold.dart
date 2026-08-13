@@ -10,10 +10,12 @@ class VideoBackgroundScaffold extends StatefulWidget {
     super.key,
     required this.child,
     this.leading,
+    this.trailing,
   });
 
   final Widget child;
   final Widget? leading;
+  final Widget? trailing;
 
   @override
   State<VideoBackgroundScaffold> createState() => _VideoBackgroundScaffoldState();
@@ -78,6 +80,8 @@ class _VideoBackgroundScaffoldState extends State<VideoBackgroundScaffold> {
               children: [
                 if (widget.leading != null)
                   Positioned(top: 4, left: 4, child: widget.leading!),
+                if (widget.trailing != null)
+                  Positioned(top: 8, right: 12, child: widget.trailing!),
                 Positioned.fill(child: widget.child),
               ],
             ),

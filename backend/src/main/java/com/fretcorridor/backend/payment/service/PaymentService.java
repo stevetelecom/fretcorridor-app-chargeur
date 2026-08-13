@@ -46,8 +46,10 @@ public class PaymentService {
             throw new ApiException(HttpStatus.CONFLICT, "Cette offre n'a pas ete acceptee");
         }
 
+        // SEQUESTRE ou LIBERE = paiement deja effectue (fonds retenus ou
+        // deja verses) - dans les deux cas, on ne refacture pas.
         paymentRepository.findByShipmentRequestIdAndUserId(shipmentRequestId, userId)
-                .filter(p -> p.getStatus() == PaymentStatus.REUSSI)
+                .filter(p -> p.getStatus() == PaymentStatus.SEQUESTRE || p.getStatus() == PaymentStatus.LIBERE)
                 .ifPresent(p -> {
                     throw new ApiException(HttpStatus.CONFLICT, "Cette demande a deja ete payee");
                 });
@@ -64,7 +66,11 @@ public class PaymentService {
                 .amountXaf(offer.getPriceXaf())
                 .provider("SIMULATED")
                 .providerReference(result.providerReference())
-                .status(result.success() ? PaymentStatus.REUSSI : PaymentStatus.ECHOUE)
+                // SEQUESTRE : les fonds sont retenus, pas encore verses au
+                // transporteur. La liberation se fait dans
+                // ShipmentTrackingService.recordDeliveryProof, au moment
+                // ou la livraison est confirmee (UC-PAY-02).
+                .status(result.success() ? PaymentStatus.SEQUESTRE : PaymentStatus.ECHOUE)
                 .build();
         payment = paymentRepository.save(payment);
 

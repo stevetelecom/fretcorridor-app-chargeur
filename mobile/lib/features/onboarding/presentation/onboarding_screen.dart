@@ -4,6 +4,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/language_toggle.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Ecran d'accueil affiche uniquement au tout premier lancement (flag
 /// persiste dans la box Hive 'app_prefs'). Vitrine visuelle avant
@@ -49,6 +51,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -85,17 +88,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 20, top: 8),
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Image.asset('assets/images/logo.jpeg', height: 40),
                       ),
-                      child: Image.asset('assets/images/logo.jpeg', height: 40),
-                    ),
+                      const LanguageToggle(),
+                    ],
                   ),
                 ),
                 const Spacer(),
@@ -105,7 +111,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Vos envois,\nsans complications',
+                        l10n.onboardingTitle,
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -113,8 +119,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Publiez votre demande de transport et connectez-vous '
-                        'aux transporteurs du corridor CEMAC, en toute simplicite.',
+                        l10n.onboardingSubtitle,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Colors.white70,
                             ),
@@ -130,7 +135,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                           onPressed: () => _markSeenAndGo('/register'),
                           icon: const Icon(Icons.arrow_forward, color: Colors.white),
-                          label: const Text('Commencer', style: TextStyle(color: Colors.white, fontSize: 16)),
+                          label: Text(l10n.start, style: const TextStyle(color: Colors.white, fontSize: 16)),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -138,13 +143,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         child: TextButton(
                           onPressed: () => _markSeenAndGo('/login'),
                           child: RichText(
-                            text: const TextSpan(
-                              style: TextStyle(color: Colors.white70, fontSize: 14),
+                            text: TextSpan(
+                              style: const TextStyle(color: Colors.white70, fontSize: 14),
                               children: [
-                                TextSpan(text: 'Vous avez deja un compte ? '),
+                                TextSpan(text: l10n.alreadyAccountOnboarding),
                                 TextSpan(
-                                  text: 'Connexion',
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                  text: l10n.loginLink,
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
