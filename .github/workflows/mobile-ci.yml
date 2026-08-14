@@ -1,0 +1,40 @@
+name: Mobile CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile-ci.yml'
+
+jobs:
+  build-and-distribute:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - run: flutter pub get
+
+      - run: flutter analyze
+
+      # Build release avec l'URL backend Render injectee explicitement -
+      # jamais le fallback dev code en dur dans session_provider.dart.
+      - run: flutter build apk --release --dart-define=API_BASE_URL=${{ secrets.API_BASE_URL }}
+
+      - name: Distribuer via Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: 1:1062538463562:android:d4308241e7b9649e3059b3
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          groups: recruteurs
+          file: mobile/build/app/outputs/flutter-apk/app-release.apk
+          releaseNotes: |
+            Build automatique depuis main (${{ github.sha }})
