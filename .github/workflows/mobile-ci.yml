@@ -57,7 +57,7 @@ jobs:
         with:
           appId: 1:1062538463562:android:d4308241e7b9649e3059b3
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          groups: recruteurs
+          groups: recruteur
           file: mobile/build/app/outputs/flutter-apk/app-release.apk
           releaseNotes: |
             Build automatique depuis main (${{ github.sha }})
