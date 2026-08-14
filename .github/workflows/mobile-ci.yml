@@ -25,6 +25,24 @@ jobs:
 
       - run: flutter analyze
 
+      # Reconstruit le keystore de signature release a partir des secrets -
+      # jamais commite dans le repo (voir mobile/.gitignore). Sans ca,
+      # `flutter build apk --release` utiliserait la signature debug par
+      # defaut, inacceptable meme pour une distribution de test.
+      - name: Reconstruire le keystore de signature
+        run: |
+          # Le module Gradle est android/app/ - c'est depuis ce dossier
+          # que file() resout un chemin relatif dans build.gradle.kts,
+          # donc le .jks doit y vivre pour que storeFile=upload-keystore.jks
+          # soit trouve correctement au moment du build.
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
+          cat > android/key.properties << KEYPROPS
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=upload-keystore.jks
+          KEYPROPS
+
       # Build release avec l'URL backend Render injectee explicitement -
       # jamais le fallback dev code en dur dans session_provider.dart.
       - run: flutter build apk --release --dart-define=API_BASE_URL=${{ secrets.API_BASE_URL }}
