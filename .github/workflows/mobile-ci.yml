@@ -29,6 +29,11 @@ jobs:
       # jamais commite dans le repo (voir mobile/.gitignore). Sans ca,
       # `flutter build apk --release` utiliserait la signature debug par
       # defaut, inacceptable meme pour une distribution de test.
+      # google-services.json est gitignore (config Firebase sensible) -
+      # reconstruit ici a partir du secret, meme logique que le keystore.
+      - name: Reconstruire google-services.json
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 -d > android/app/google-services.json
+
       - name: Reconstruire le keystore de signature
         run: |
           # Le module Gradle est android/app/ - c'est depuis ce dossier
