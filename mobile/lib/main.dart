@@ -14,6 +14,7 @@ import 'features/offers/presentation/offers_screen.dart';
 import 'features/payment/presentation/payment_screen.dart';
 import 'features/tracking/presentation/tracking_screen.dart';
 import 'features/history/presentation/history_screen.dart';
+import 'core/widgets/splash_screen.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
 import 'home_screen.dart';
 
@@ -54,9 +55,10 @@ class _FretCorridorAppState extends ConsumerState<FretCorridorApp> {
   void initState() {
     super.initState();
     _router = GoRouter(
-      // Toujours la landing page au demarrage de l'app, meme apres un
-      // premier lancement anterieur.
-      initialLocation: '/onboarding',
+      // Le splash (reveil backend, cold start Render) precede toujours
+      // l'onboarding - il gere lui-meme la redirection une fois le
+      // backend confirme pret (voir SplashScreen._goNext).
+      initialLocation: '/splash',
       redirect: (context, state) {
         final session = ref.read(sessionProvider);
         final isLoggedIn = session.valueOrNull != null;
@@ -64,13 +66,18 @@ class _FretCorridorAppState extends ConsumerState<FretCorridorApp> {
             state.matchedLocation == '/login' ||
             state.matchedLocation == '/register';
         final isOnboardingRoute = state.matchedLocation == '/onboarding';
+        final isSplashRoute = state.matchedLocation == '/splash';
 
-        if (isOnboardingRoute) return null;
+        if (isSplashRoute || isOnboardingRoute) return null;
         if (!isLoggedIn && !isAuthRoute) return '/login';
         if (isLoggedIn && isAuthRoute) return '/home';
         return null;
       },
       routes: [
+        GoRoute(
+          path: '/splash',
+          builder: (context, state) => const SplashScreen(),
+        ),
         GoRoute(
           path: '/onboarding',
           builder: (context, state) => const OnboardingScreen(),

@@ -7,10 +7,15 @@ import '../storage/secure_storage_service.dart';
 /// redirige alors vers l'ecran de connexion).
 class DioClient {
   DioClient(this._secureStorage, {required String baseUrl}) {
+    // 90s : couvre le cas d'un cold start sur le plan gratuit Render
+    // (le service s'endort apres inactivite et peut prendre jusqu'a
+    // 2-3 min a se reveiller, observe en test). Trop court et la premiere
+    // requete d'un utilisateur echoue systematiquement avant que le
+    // backend ait fini de demarrer.
     dio = Dio(BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 90),
+      receiveTimeout: const Duration(seconds: 90),
     ));
 
     dio.interceptors.add(InterceptorsWrapper(
